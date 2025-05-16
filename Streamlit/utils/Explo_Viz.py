@@ -19,11 +19,12 @@ def preprocess_data(df_cons):
         df_cons.drop('Column 30', axis=1, inplace=True)
     df_cons['Eolien (MW)'] = pd.to_numeric(df_cons['Eolien (MW)'], errors='coerce')
     #df_cons['Eolien (MW)'].fillna(0, inplace=True)
-    df_cons.fillna(0, inplace=True)
+    
     df_cons['Echange Import (MW)'] = df_cons['Ech. physiques (MW)'].apply(lambda x: x if x > 0 else 0)
     df_cons['Echange Export (MW)'] = df_cons['Ech. physiques (MW)'].apply(lambda x: abs(x) if x < 0 else 0)
     TCH = ['TCH Thermique (%)', 'TCH Nucléaire (%)', 'TCH Eolien (%)', 'TCH Solaire (%)', 'TCH Hydraulique (%)', 'TCH Bioénergies (%)']
     TCO = ['TCO Thermique (%)', 'TCO Nucléaire (%)', 'TCO Eolien (%)', 'TCO Solaire (%)', 'TCO Hydraulique (%)', 'TCO Bioénergies (%)']
+    df_cons.fillna(0, inplace=True)
     for col in TCH:
         df_cons[col] = df_cons.groupby('Région')[col].transform(lambda x: x.replace(0, np.nan).mean())
     for col in TCO:
