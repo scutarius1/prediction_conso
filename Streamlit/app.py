@@ -29,7 +29,8 @@ def load_and_preprocess_data():
     
     # Appliquer le prétraitement
     df_cons_preprocessed = Explo_Viz.preprocess_data(df_cons)
-    return df_cons_preprocessed
+    df_energie = Explo_Viz.preprocess_data2(df_cons_preprocessed)
+    return df_cons_preprocessed, df_energie #ajout de df_energie
 
 def main():
     #st.title("Prédiction de Consommation Electrique en France")
@@ -40,9 +41,10 @@ def main():
     #st.sidebar.page_link("pages/modelisation.py", label="Processing et Modélisation")
     st.sidebar.title("Simulateur")
     st.sidebar.page_link("pages/simulateur.py", label="📊 Prédiction Régionnale Conso Future")
-    df_cons_preprocessed = load_and_preprocess_data()  # Charger les données prétraitées
+    #df_cons_preprocessed = load_and_preprocess_data()  # Charger les données prétraitées
+    df_cons_preprocessed, df_energie = load_and_preprocess_data() # AJOUTE
     df_temp = Explo_Viz.load_temp()  # Charger les données de température
-    df_energie = Explo_Viz.preprocess_data2(df_cons_preprocessed)# Appliquer le prétraitement avancé
+    #df_energie = Explo_Viz.preprocess_data2(df_cons_preprocessed)# Appliquer le prétraitement avancé
 
 
 
