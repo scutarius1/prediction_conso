@@ -61,7 +61,6 @@ selenium==4.28.1
 send2trash
 setuptools==75.1.0
 six
-sklearn
 sniffio
 soupsieve
 streamlit
