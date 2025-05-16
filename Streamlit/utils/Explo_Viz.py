@@ -18,7 +18,7 @@ def preprocess_data(df_cons):
     if 'Column 30' in df_cons.columns:
         df_cons.drop('Column 30', axis=1, inplace=True)
     df_cons['Eolien (MW)'] = pd.to_numeric(df_cons['Eolien (MW)'], errors='coerce')
-    df_cons['Eolien (MW)'].fillna(0, inplace=True)
+    #df_cons['Eolien (MW)'].fillna(0, inplace=True)
     df_cons.fillna(0, inplace=True)
     df_cons['Echange Import (MW)'] = df_cons['Ech. physiques (MW)'].apply(lambda x: x if x > 0 else 0)
     df_cons['Echange Export (MW)'] = df_cons['Ech. physiques (MW)'].apply(lambda x: abs(x) if x < 0 else 0)
