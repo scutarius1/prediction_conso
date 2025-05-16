@@ -179,8 +179,17 @@ def preprocess_data2(df_cons):
     df_energie.fillna(0, inplace=True)
     df_energie = df_energie.sort_values(by='DH')
     # Ajouter une nouvelle colonne avec la valeur de l'heure
-    df_energie['Plage Horaire'] = df_energie['Heure'].astype(str).str.slice(0, 2).str.replace('.', '').astype(int)
-    df_energie['Plage Horaire'].unique()
+    
+    df_energie['Plage Horaire'] = (
+    pd.to_numeric(
+        df_energie['Heure'].astype(str).str.extract(r'(\d{1,2})')[0],
+        errors='coerce'
+    ).fillna(-1).astype(int)
+    ) 
+
+
+    #df_energie['Plage Horaire'] = df_energie['Heure'].astype(str).str.slice(0, 2).str.replace('.', '').astype(int)
+    #df_energie['Plage Horaire'].unique()
     # Ajouter les colonnes 'Mois' et 'Année'
     df_energie['Mois'] = pd.to_datetime(df_energie['Date']).dt.month
     df_energie['Année'] = pd.to_datetime(df_energie['Date']).dt.year
