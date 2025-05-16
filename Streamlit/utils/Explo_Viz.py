@@ -2,9 +2,14 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import datetime
+import seaborn as sns
+import streamlit as st
+import gdown
+from scipy.stats import pearsonr
+from scipy.stats import spearmanr
 
 # ###############################
-# ⚙️ FONCTION  PREPROCESSING ⚙️ #
+# ⚙️ PREPROCESSING 1 ⚙️ #
 ################################
 def preprocess_data(df_cons):
     # (Votre code de prétraitement reste inchangé)
@@ -26,7 +31,7 @@ def preprocess_data(df_cons):
     return df_cons
 
 # #####################################
-# ⚙️ FONCTION VARIATIONS ET PHASAGES ⚙️#
+# ⚙️ VARIATIONS ET PHASAGES       ⚙️  #
 #######################################
 def create_regional_plots(df_cons_preprocessed, annee, mois, jour, frequence_resample, regions_selected):
     """Crée des graphiques comparatifs pour les régions sélectionnées (sans prétraitement)."""
@@ -105,9 +110,9 @@ def create_regional_plots(df_cons_preprocessed, annee, mois, jour, frequence_res
     #plt.tight_layout()
     return fig
 
-# #####################################
-# ⚙️ FONCTION TAUX DE COUVERTURE    ⚙️#
-#######################################
+# ############################
+# ⚙️ TAUX DE COUVERTURE    ⚙️#
+##############################
 
 def create_barplot(df_cons_preprocessed):
     """Crée un graphique en barres empilées pour le taux de couverture (sans prétraitement)."""
@@ -130,3 +135,192 @@ def create_barplot(df_cons_preprocessed):
     for label in ax.get_xticklabels():
         label.set_y(label.get_position()[1] - 0.07)
     return fig_barplot
+
+# ##########################################
+# ⚙️ PREPROCESSING 2 & LOAD TEMPERATURES  ⚙️#
+############################################
+
+#@st.cache_data
+
+def compute_df_st2(df_energie):
+    #Calcule df_st2 : Consommation agrégée à la maille mois et année
+    return df_energie.groupby(['Année', 'Mois'])['Consommation (MW)'].sum().reset_index()
+
+#**Aggregation à la maille plage horaire**
+
+def aggregate_hourly_data(df_energie):
+    """Agrège la consommation énergétique à la maille plage horaire."""
+    
+    df_st1 = df_energie[['Date', 'Saison', 'Région', 'Année', 'Mois', 'Plage Horaire', 'Consommation (MW)']]
+    df_st1 = df_st1.groupby(['Date', 'Saison', 'Région', 'Année', 'Mois', 'Plage Horaire']).sum().reset_index()
+    
+    return df_st1  
+
+@st.cache_data
+def load_temp():
+    """Télécharge et prétraite les données depuis Google Drive."""
+    file_id = "1GMxi5h5sX0qaiWVayYqgdwcW-BLbZVnY"  # Ton ID de fichier extrait
+    url = f"https://drive.google.com/uc?id={file_id}"  # Lien de téléchargement direct
+    output = "temperature-quotidienne-regionale.csv"
+    gdown.download(url, output, quiet=False)
+    df_temp = pd.read_csv(output, sep=';')
+    return df_temp
+
+
+def preprocess_data2(df_cons):
+    df_energie = df_cons.copy()
+    TCH = ['TCH Thermique (%)', 'TCH Nucléaire (%)', 'TCH Eolien (%)', 'TCH Solaire (%)', 'TCH Hydraulique (%)', 'TCH Bioénergies (%)'] 
+    TCO = ['TCO Thermique (%)', 'TCO Nucléaire (%)', 'TCO Eolien (%)', 'TCO Solaire (%)', 'TCO Hydraulique (%)', 'TCO Bioénergies (%)']
+    colonnes_a_supprimer = ['Ech. physiques (MW)'] + TCH + TCO + [
+        'Thermique (MW)', 'Nucléaire (MW)', 'Eolien (MW)', 'Solaire (MW)', 'Hydraulique (MW)', 'Pompage (MW)',
+        'Bioénergies (MW)', 'Stockage batterie', 'Déstockage batterie', 'Eolien terrestre', 'Eolien offshore'
+    ]
+    df_energie.drop(columns=colonnes_a_supprimer, inplace=True)
+    df_energie.fillna(0, inplace=True)
+    df_energie = df_energie.sort_values(by='DH')
+    # Ajouter une nouvelle colonne avec la valeur de l'heure
+    df_energie['Plage Horaire'] = df_energie['Heure'].astype(str).str.slice(0, 2).str.replace('.', '').astype(int)
+    df_energie['Plage Horaire'].unique()
+    # Ajouter les colonnes 'Mois' et 'Année'
+    df_energie['Mois'] = pd.to_datetime(df_energie['Date']).dt.month
+    df_energie['Année'] = pd.to_datetime(df_energie['Date']).dt.year
+    # Fonction pour déterminer la saison en fonction du mois
+    def get_season(month):
+        if month in [12, 1, 2]:
+            return 'Hiver'
+        elif month in [3, 4, 5]:
+            return 'Printemps'
+        elif month in [6, 7, 8]:
+            return 'Été'
+        else:
+            return 'Automne'
+    # Ajouter la colonne 'Saison'
+    df_energie['Saison'] = df_energie['Mois'].apply(get_season)
+    return df_energie
+
+# ###############################
+# ⚙️ BOX PLOT TEMPERATURES    ⚙️#
+#################################
+
+
+def create_boxplot(df_energie, df_temp):
+    """Crée un graphique avec boxplot pour la consommation et un swarmplot pour la température moyenne par mois."""
+    # Grouper par mois et année et sommer la consommation
+    df_st2 = df_energie[['Année', 'Mois', 'Consommation (MW)']]
+    df_st2 = df_st2.groupby(['Année', 'Mois'])['Consommation (MW)'].sum().reset_index()
+
+    # Compiler les données du df_energie à la maille jour
+    df_energie_jour = df_energie.groupby(['Région', 'Date', 'Année', 'Mois']).agg({
+        'Consommation (MW)': 'sum'  
+    }).reset_index()
+
+    # Fusionner avec les données de température
+    df_corr01 = pd.merge(df_energie_jour, df_temp[['Région', 'Date', 'TMoy (°C)']], on=['Région', 'Date'], how='left')
+
+    # Suppression des années sans relevés et interpolation des valeurs manquantes
+    df_corr01 = df_corr01[df_corr01['Date'] >= '2016-01-01']
+    df_corr01.sort_values(by=['Région', 'Date'], inplace=True)
+    df_corr01['TMoy (°C)'] = df_corr01['TMoy (°C)'].interpolate(method='linear')
+
+    # Calculer la moyenne de TMoy par mois
+    df_corr01_st2 = df_corr01.groupby(['Région', 'Année', 'Mois'])['TMoy (°C)'].mean().reset_index()
+    #st.write(df_corr01_st2.sample(50))  # Remplacement de display() par st.write()
+    
+    # Créer la figure
+    fig, ax1 = plt.subplots(figsize=(13, 8))
+
+    # Boxplot pour la consommation par mois (à partir de df_st2, qui est l'agrégat)
+    df_st2.boxplot(column='Consommation (MW)', by='Mois', grid=False, ax=ax1, 
+                   positions=np.arange(len(df_st2['Mois'].unique())) - 0.2, 
+                   widths=0.4, patch_artist=True, boxprops=dict(facecolor='lightyellow'))
+
+    # Créer un second axe des ordonnées pour les températures
+    ax2 = ax1.twinx()
+
+    # Swarmplot pour la température moyenne par mois
+    sns.swarmplot(x='Mois', y='TMoy (°C)', data=df_corr01_st2, ax=ax2, hue='TMoy (°C)', 
+                  palette='coolwarm', size=2, legend=False)
+
+    # Définir la palette de couleurs pour le swarmplot
+    norm = plt.Normalize(df_corr01_st2['TMoy (°C)'].min(), df_corr01_st2['TMoy (°C)'].max())
+    sm = plt.cm.ScalarMappable(cmap="coolwarm", norm=norm)
+    sm.set_array([])
+
+    # Ajouter une barre de couleur
+    cbar = plt.colorbar(sm, ax=ax2)
+    cbar.set_label('Température Moyenne (°C)')
+
+    # Ajuster les étiquettes et le titre
+    ax1.set_title('Consommation et Température Moyenne par Mois')
+    ax1.set_xlabel('Mois')
+    ax1.set_ylabel('Consommation (MW)')
+
+    return fig
+
+# ###############################
+# ⚙️ BOX PLOT SAISONS        ⚙️#
+#################################
+
+def create_boxplot_season(df_st1):
+    """Crée un boxplot Streamlit pour la consommation par plage horaire et saison."""
+    # Grouper par Plage Horaire, Année et Saison et sommer la consommation
+    df_st3 = df_st1[['Plage Horaire', 'Année', 'Saison', 'Consommation (MW)']]
+    df_st3 = df_st3.groupby(['Plage Horaire', 'Année', 'Saison'])['Consommation (MW)'].sum().reset_index()
+
+    palette = {
+        'Été': '#FFD700',   
+        'Hiver': '#1E90FF', 
+        'Automne': '#FF8C00',
+        'Printemps': '#32CD32'
+    }
+    fig, ax = plt.subplots(figsize=(13, 8))
+    sns.boxplot(y='Consommation (MW)', x='Plage Horaire', hue='Saison', data=df_st3, showfliers=False, palette=palette, ax=ax)
+    ax.set_title('Consommation par Plage Horaire en fonction de la saison')
+    ax.set_xlabel('Plage Horaire')
+    ax.set_ylabel('Consommation (MW)')
+    return fig, df_st3
+
+# ###############################
+# ⚙️ PLOT VARIATION ANNUELLE  ⚙️#
+#################################
+# Créer un graphique en ligne pour la consommation par mois et année
+
+def create_annual_plot(df_st2):
+    """Crée un graphique de consommation annuelle par mois pour chaque année."""
+    fig, ax = plt.subplots(figsize=(12, 6))
+    for year in df_st2['Année'].unique():
+        ax.plot(df_st2[df_st2['Année'] == year]['Mois'], 
+                df_st2[df_st2['Année'] == year]['Consommation (MW)'], 
+                label=year)
+    ax.set_title('Consommation par Mois et Année')
+    ax.set_xlabel('Mois')
+    ax.set_ylabel('Consommation (MW)')
+    ax.legend(title='Année')
+    ax.grid(True)
+
+    return fig
+
+# ###############################
+# ⚙️     TEST STATISTIQUES    ⚙️#
+#################################
+
+def Test_corr(df_st3):
+    """
+    Calcule les corrélations de Spearman et Pearson entre la Plage Horaire et la Consommation électrique.
+    Retourne un dictionnaire avec les coefficients et les p-values.
+    """
+
+    # Calcul des corrélations globales sur le jeu de données agrégé
+    spearman_corr, spearman_p = spearmanr(df_st3['Plage Horaire'], df_st3['Consommation (MW)'])
+    pearson_corr, pearson_p = pearsonr(df_st3['Plage Horaire'], df_st3['Consommation (MW)'])
+
+    # Retourner figure + corrélations dans un dict pour affichage en aval
+    corr_results = {
+        "spearman_corr": spearman_corr,
+        "spearman_p": spearman_p,
+        "pearson_corr": pearson_corr,
+        "pearson_p": pearson_p
+    }
+
+    return corr_results, df_st3
+
