@@ -23,6 +23,7 @@ dill
 distributed
 fsspec
 gensim
+gdown
 h5py
 holidays
 huggingface-hub==0.29.2
