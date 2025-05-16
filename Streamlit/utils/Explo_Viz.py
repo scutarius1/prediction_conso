@@ -11,6 +11,7 @@ from scipy.stats import spearmanr
 # ###############################
 # ⚙️ PREPROCESSING 1 ⚙️ #
 ################################
+@st.cache_data
 def preprocess_data(df_cons):
     # (Votre code de prétraitement reste inchangé)
     df_cons['DH'] = pd.to_datetime(df_cons['Date - Heure'], errors='coerce')
@@ -33,6 +34,7 @@ def preprocess_data(df_cons):
 # #####################################
 # ⚙️ VARIATIONS ET PHASAGES       ⚙️  #
 #######################################
+@st.cache_data
 def create_regional_plots(df_cons_preprocessed, annee, mois, jour, frequence_resample, regions_selected):
     """Crée des graphiques comparatifs pour les régions sélectionnées (sans prétraitement)."""
 # 
@@ -113,7 +115,7 @@ def create_regional_plots(df_cons_preprocessed, annee, mois, jour, frequence_res
 # ############################
 # ⚙️ TAUX DE COUVERTURE    ⚙️#
 ##############################
-
+@st.cache_data
 def create_barplot(df_cons_preprocessed):
     """Crée un graphique en barres empilées pour le taux de couverture (sans prétraitement)."""
 
@@ -147,7 +149,7 @@ def compute_df_st2(df_energie):
     return df_energie.groupby(['Année', 'Mois'])['Consommation (MW)'].sum().reset_index()
 
 #**Aggregation à la maille plage horaire**
-
+@st.cache_data
 def aggregate_hourly_data(df_energie):
     """Agrège la consommation énergétique à la maille plage horaire."""
     
@@ -166,7 +168,7 @@ def load_temp():
     df_temp = pd.read_csv(output, sep=';')
     return df_temp
 
-
+@st.cache_data
 def preprocess_data2(df_cons):
     df_energie = df_cons.copy()
     TCH = ['TCH Thermique (%)', 'TCH Nucléaire (%)', 'TCH Eolien (%)', 'TCH Solaire (%)', 'TCH Hydraulique (%)', 'TCH Bioénergies (%)'] 
@@ -211,7 +213,7 @@ def preprocess_data2(df_cons):
 # ⚙️ BOX PLOT TEMPERATURES    ⚙️#
 #################################
 
-
+@st.cache_data
 def create_boxplot(df_energie, df_temp):
     """Crée un graphique avec boxplot pour la consommation et un swarmplot pour la température moyenne par mois."""
     # Grouper par mois et année et sommer la consommation
@@ -269,7 +271,7 @@ def create_boxplot(df_energie, df_temp):
 # ###############################
 # ⚙️ BOX PLOT SAISONS        ⚙️#
 #################################
-
+@st.cache_data
 def create_boxplot_season(df_st1):
     """Crée un boxplot Streamlit pour la consommation par plage horaire et saison."""
     # Grouper par Plage Horaire, Année et Saison et sommer la consommation
@@ -293,7 +295,7 @@ def create_boxplot_season(df_st1):
 # ⚙️ PLOT VARIATION ANNUELLE  ⚙️#
 #################################
 # Créer un graphique en ligne pour la consommation par mois et année
-
+@st.cache_data
 def create_annual_plot(df_st2):
     """Crée un graphique de consommation annuelle par mois pour chaque année."""
     fig, ax = plt.subplots(figsize=(12, 6))
@@ -312,7 +314,7 @@ def create_annual_plot(df_st2):
 # ###############################
 # ⚙️     TEST STATISTIQUES    ⚙️#
 #################################
-
+@st.cache_data
 def Test_corr(df_st3):
     """
     Calcule les corrélations de Spearman et Pearson entre la Plage Horaire et la Consommation électrique.
