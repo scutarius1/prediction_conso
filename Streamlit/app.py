@@ -21,11 +21,12 @@ import gdown
 @st.cache_data
 def load_and_preprocess_data():
     """Télécharge et prétraite les données depuis Google Drive."""
-    file_id = "1PNmdPjruNoA7o-YBE8nJi5IkgicIGcAJ"  # Ton ID de fichier extrait
+    file_id = "1-rrbscoN6mfdR2fF_GnIlTVTIwPcWJZf"  # Ton ID de fichier extrait
+    #1PNmdPjruNoA7o-YBE8nJi5IkgicIGcAJ
     url = f"https://drive.google.com/uc?id={file_id}"  # Lien de téléchargement direct
-    output = "eco2mix-regional-cons-def.csv"
+    output = "eco2mix-regional_reduced.csv"
     gdown.download(url, output, quiet=False)
-    df_cons = pd.read_csv(output, sep=';', on_bad_lines="skip", encoding="utf-8",low_memory=False)
+    df_cons = pd.read_csv(output, sep=',', on_bad_lines="skip", encoding="utf-8",low_memory=False)
     
     # Appliquer le prétraitement
     df_cons_preprocessed = Explo_Viz.preprocess_data(df_cons)
