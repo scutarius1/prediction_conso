@@ -39,7 +39,14 @@ st.markdown("<hr style='border: 2px solid #4CAF50;'>", unsafe_allow_html=True)
 ############################
 
 # Chargement et prétraitement des données
-df_future_temp = pd.read_csv("dataset_streamlit/Future_temp.csv", index_col=0)
+#df_future_temp = pd.read_csv("dataset_streamlit/Future_temp.csv", index_col=0)
+
+# Localisation robuste depuis simulateur.py
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))         # /mount/src/pages/
+ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, ".."))      # /mount/src/
+csv_path = os.path.join(ROOT_DIR, "dataset_streamlit", "Future_temp.csv")
+
+df_future_temp = pd.read_csv(csv_path, index_col=0)
 
 # Conversion de la colonne 'time' en datetime
 df_future_temp['time'] = pd.to_datetime(df_future_temp['time'])
