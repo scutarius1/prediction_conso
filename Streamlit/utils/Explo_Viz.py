@@ -49,7 +49,7 @@ def create_regional_plots(df_cons_preprocessed, annee, mois, jour, frequence_res
     dfs_regions = []
     for region in regions_selected:
         df_region = df_filtered[df_filtered['Région'] == region].groupby('DH')[prod_area + [conso_line]].mean()
-        frequency_mapping = {'Heure': 'H', 'Jour': 'D', 'Semaine': 'W', 'Mois': 'ME'}
+        frequency_mapping = {'Heure': 'h', 'Jour': 'D', 'Semaine': 'W', 'Mois': 'ME'}
         pandas_frequency = frequency_mapping.get(frequence_resample)
         if pandas_frequency:
             df_region = df_region.resample(pandas_frequency).mean()
