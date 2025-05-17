@@ -11,13 +11,6 @@ import gdown
 # ⚙️ LOAD & PREPROCESS ⚙️ #
 ##########################
 
-#@st.cache_data  
-#def load_and_preprocess_data():
-    #"""Charge et prétraite les données une seule fois."""
-    #df_cons = pd.read_csv("../DataSet/eco2mix-regional-cons-def.csv", sep=';')
-    #df_cons_preprocessed = Explo_Viz.preprocess_data(df_cons)
-    #return df_cons_preprocessed
-
 @st.cache_data
 def load_and_preprocess_data():
     """Télécharge et prétraite les données depuis Google Drive."""
@@ -43,10 +36,9 @@ def main():
     #st.sidebar.page_link("pages/modelisation.py", label="Processing et Modélisation")
     st.sidebar.title("Simulateur")
     st.sidebar.page_link("pages/simulateur.py", label="📊 Prédiction Régionnale Conso Future")
-    #df_cons_preprocessed = load_and_preprocess_data()  # Charger les données prétraitées
+
     df_cons_preprocessed, df_energie, df_temp = load_and_preprocess_data() # AJOUTE
-    #df_temp = Explo_Viz.load_temp()  # Charger les données de température
-    #df_energie = Explo_Viz.preprocess_data2(df_cons_preprocessed)# Appliquer le prétraitement avancé
+
 
 
 #################################
