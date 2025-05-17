@@ -84,9 +84,9 @@ def main():
 
         st.markdown("[Cliquez ici pour en savoir plus sur les actions de datacleaning](https://www.notion.so/Projet-Data-ENERGIE-PRE-PROCESSING-Fusion-Eco2mix-2-fichiers-18c725f38aa58062b1d7f79dc035f834?pvs=4)")
         
-#################################
+####################################
 # ⚙️ DATAVIZ ADEQUATION PROD/CONSO    ⚙️#
-#################################
+####################################
 
     elif page == pages[1]:
         st.header("Inégalités Régionales dans le Mix Energétique "
