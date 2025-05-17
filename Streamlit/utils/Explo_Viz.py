@@ -30,6 +30,7 @@ def preprocess_data(df_cons):
     df_cons = df_cons.sort_values(by='DH')
     
     return df_cons
+
 # #####################################
 # ⚙️ VARIATIONS ET PHASAGES       ⚙️  #
 #######################################
@@ -168,7 +169,7 @@ def load_temp():
 
 @st.cache_data
 def preprocess_data2(df_cons):
-    df_energie = df_cons#.copy()
+    df_energie = df_cons.copy()
     TCH = ['TCH Thermique (%)', 'TCH Nucléaire (%)', 'TCH Eolien (%)', 'TCH Solaire (%)', 'TCH Hydraulique (%)', 'TCH Bioénergies (%)'] 
     TCO = ['TCO Thermique (%)', 'TCO Nucléaire (%)', 'TCO Eolien (%)', 'TCO Solaire (%)', 'TCO Hydraulique (%)', 'TCO Bioénergies (%)']
     colonnes_a_supprimer = ['Ech. physiques (MW)'] + TCH + TCO + [
