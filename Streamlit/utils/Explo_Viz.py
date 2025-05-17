@@ -13,24 +13,22 @@ from scipy.stats import spearmanr
 ################################
 @st.cache_data
 def preprocess_data(df_cons):
-    # (Votre code de prétraitement reste inchangé)
+
     df_cons['DH'] = pd.to_datetime(df_cons['Date - Heure'], errors='coerce')
-    #if 'Column 30' in df_cons.columns:
-    #    df_cons.drop('Column 30', axis=1, inplace=True)
-    #df_cons['Eolien (MW)'] = pd.to_numeric(df_cons['Eolien (MW)'], errors='coerce')
-    #df_cons['Eolien (MW)'].fillna(0, inplace=True)
 
     df_cons['Echange Import (MW)'] = df_cons['Ech. physiques (MW)'].apply(lambda x: x if x > 0 else 0)
     df_cons['Echange Export (MW)'] = df_cons['Ech. physiques (MW)'].apply(lambda x: abs(x) if x < 0 else 0)
     TCH = ['TCH Thermique (%)', 'TCH Nucléaire (%)', 'TCH Eolien (%)', 'TCH Solaire (%)', 'TCH Hydraulique (%)', 'TCH Bioénergies (%)']
     TCO = ['TCO Thermique (%)', 'TCO Nucléaire (%)', 'TCO Eolien (%)', 'TCO Solaire (%)', 'TCO Hydraulique (%)', 'TCO Bioénergies (%)']
-    df_cons.fillna(0, inplace=True)
-    for col in TCH:
-        df_cons[col] = df_cons.groupby('Région')[col].transform(lambda x: x.replace(0, np.nan).mean())
+    
+    #for col in TCH:
+        #df_cons[col] = df_cons.groupby('Région')[col].transform(lambda x: x.replace(0, np.nan).mean())
     for col in TCO:
         df_cons[col] = df_cons.groupby('Région')[col].transform(lambda x: x.replace(0, np.nan).mean())
+    
+    df_cons.fillna(0, inplace=True)
     df_cons = df_cons.sort_values(by='DH')
-
+    
     return df_cons
 # #####################################
 # ⚙️ VARIATIONS ET PHASAGES       ⚙️  #
@@ -125,7 +123,7 @@ def create_barplot(df_cons_preprocessed):
     TCH = ['TCH Thermique (%)', 'TCH Nucléaire (%)', 'TCH Eolien (%)', 'TCH Solaire (%)', 'TCH Hydraulique (%)', 'TCH Bioénergies (%)']
     TCO = ['TCO Thermique (%)', 'TCO Nucléaire (%)', 'TCO Eolien (%)', 'TCO Solaire (%)', 'TCO Hydraulique (%)', 'TCO Bioénergies (%)']
     df_barplot[TCO] = df_cons_preprocessed.groupby('Région')[TCO].mean()
-    df_barplot[TCH] = df_cons_preprocessed.groupby('Région')[TCH].mean()
+    #df_barplot[TCH] = df_cons_preprocessed.groupby('Région')[TCH].mean()
     fig_barplot, ax = plt.subplots(figsize=(11, 7))
     df_barplot[TCO].plot.bar(stacked=True, ax=ax, alpha=0.8, rot=0)
     ax.axhline(y=100, color='black', linestyle='--', linewidth=2, label='Couverture 100%')
@@ -170,7 +168,7 @@ def load_temp():
 
 @st.cache_data
 def preprocess_data2(df_cons):
-    df_energie = df_cons.copy()
+    df_energie = df_cons#.copy()
     TCH = ['TCH Thermique (%)', 'TCH Nucléaire (%)', 'TCH Eolien (%)', 'TCH Solaire (%)', 'TCH Hydraulique (%)', 'TCH Bioénergies (%)'] 
     TCO = ['TCO Thermique (%)', 'TCO Nucléaire (%)', 'TCO Eolien (%)', 'TCO Solaire (%)', 'TCO Hydraulique (%)', 'TCO Bioénergies (%)']
     colonnes_a_supprimer = ['Ech. physiques (MW)'] + TCH + TCO + [
@@ -193,9 +191,6 @@ def preprocess_data2(df_cons):
     ).fillna(-1).astype(int)
     ) 
 
-
-    #df_energie['Plage Horaire'] = df_energie['Heure'].astype(str).str.slice(0, 2).str.replace('.', '').astype(int)
-    #df_energie['Plage Horaire'].unique()
     # Ajouter les colonnes 'Mois' et 'Année'
     df_energie['Mois'] = pd.to_datetime(df_energie['Date']).dt.month
     df_energie['Année'] = pd.to_datetime(df_energie['Date']).dt.year
