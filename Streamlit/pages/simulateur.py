@@ -94,7 +94,12 @@ else:
 
         model_name = f"{model_choices[selected_model]}_{region}.joblib"
         #model_path = f"../Modélisations_prédictions/{model_name}"
-        model_path = os.path.join("Modélisations_prédictions", model_name)
+        #model_path = os.path.join("Modélisations_prédictions", model_name)
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))       # /mount/src/pages/
+        ROOT_DIR = os.path.abspath(os.path.join(BASE_DIR, ".."))    # /mount/src/
+
+        model_path = os.path.join(ROOT_DIR, "Modélisations_prédictions", model_name)
+
         print(f"Trying to load model from: {model_path}")
 
         try:
