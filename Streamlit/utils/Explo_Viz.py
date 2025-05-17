@@ -9,7 +9,7 @@ from scipy.stats import pearsonr
 from scipy.stats import spearmanr
 
 # ###############################
-# ⚙️ PREPROCESSING 1 ⚙️ #
+# ⚙️ PREPROCESSING 1       ⚙️ #
 ################################
 @st.cache_data
 def preprocess_data(df_cons):
@@ -108,7 +108,6 @@ def create_regional_plots(df_cons_preprocessed, annee, mois, jour, frequence_res
         bbox_to_anchor=(0.5, 0.95), bbox_transform=fig.transFigure
     )
     plt.subplots_adjust(top=0.85)  # Ajuste l'espace pour ne pas écraser la légende
-
 
     #plt.tight_layout()
     return fig
